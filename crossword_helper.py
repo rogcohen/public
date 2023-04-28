@@ -293,20 +293,19 @@ class solver:
     anagram_string_no_brackets = self.remove_non_alpha(self.remove_bracketed_regions(anagram_string))
     if len(anagram_string_no_brackets) > 0:
       d = dict(filter(lambda l: l[1][1]%self.hash_string(anagram_string_no_brackets) == 0, d.items()))
-    
+
     if not exist_consonant_marker and not exist_vowel_marker and not exist_bracketed_regions:
-      new_anagram_string_list = [anagram_string]
+      new_anagram_string_list = set(anagram_string)
     else:
+      anagram_string_list = set()
       new_anagram_string_list = set()
       if exist_bracketed_regions:
-        new_anagram_string_list = self.expand_character_choice(anagram_string,"",set())
+        anagram_string_list = self.expand_character_choice(anagram_string,"",set())
       else:
-        new_anagram_string_list = [anagram_string]
+        anagram_string_list = [anagram_string]
       for x in anagram_string_list:
         new_anagram_string_list = new_anagram_string_list | self.expand_vowel_and_consonants1(x,set())
-#    print(new_anagram_string_list)
-#    for a in new_anagram_string_list:
-#      result = result | dict(filter(lambda l: l[1][1]%self.hash_string(a) == 0, d.items()))
+
     hash_list = numpy.array([self.hash_string(x) for x in set(new_anagram_string_list)])
     result = dict(filter(lambda l: not numpy.all(l[1][1]%hash_list), d.items()))
     return result
