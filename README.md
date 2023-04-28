@@ -6,7 +6,7 @@ I started this project because the app wasn't available on Android; when I switc
 annoying problem. It was also an opportunity to write something more substantial in Python than the small utilities I use to help with 
 numerical puzzles.
 
-Crossword-helper was developed on a Windows 10 pc and has only been tested on my Samsung Galaxy X21 phone running as a program on thePydroid app. It uses the Kivy framework to handle the UI, to which I have given only the minimal attention necessary to get it to work at all.
+Crossword-helper was developed on a Windows 10 pc and has only been tested on my Samsung Galaxy X21 phone running as a program on the Pydroid app. It uses the Kivy framework to handle the UI, to which I have given only the minimal attention necessary to get it to work at all.
 
 Crossword-helper must be supplied with file(s) containing word lists to work. I used lists derived from Ross Beresford's UK Advanced Cryptics Dictionary
 (http://cfajohnson.com/wordfinder/UKACD17.shtml) and the enable1.txt word list available from https://code.google.com/archive/p/dotnetperls-controls/downloads (among others). Crossword-helper starts up fastest when the word file(s) are split into mutiple files each containing a single length of word. However there is also a commented-out section that will load the lists from any number of single files containing words of any length.
