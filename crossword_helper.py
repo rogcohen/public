@@ -514,9 +514,12 @@ class solver:
       result,error_message = self.validate_char_string(char_string,len(clist) == 2,clist[0])
     return result,error_message
 
+  def replace_bracketed_regions(self,s,rep_pos,rep_neg):
+    b = re.sub(self.par_regex(self.control_chars["open_neg_bracket"],self.control_chars["close_neg_bracket"]),rep_neg,s)
+    return re.sub(self.par_regex(self.control_chars["open_bracket"],self.control_chars["close_bracket"]),rep_pos,b)
+
   def remove_bracketed_regions(self,s):
-    b = re.sub(self.par_regex(self.control_chars["open_neg_bracket"],self.control_chars["close_neg_bracket"]),"",s)
-    return re.sub(self.par_regex(self.control_chars["open_bracket"],self.control_chars["close_bracket"]),"",b)
+    return self.replace_bracketed_regions(s,"","")
     
   def remove_non_alpha(self,s):
     return re.sub(r"[^a-z]","",s)
@@ -681,6 +684,9 @@ class solver:
       anagram_string_list.add(anagram_string)
     return anagram_string_list
 
+  def convert_neg_to_positive(self,neg):
+    return "".join(sorted(set(string.ascii_lowercase).difference(neg)))
+
   def expand_character_choice(self,anagram_string,expanded_string,anagram_string_list):
     def build_strings(bracketed_regions,expanded_string,anagram_string_list,new_anagram_string):
       new_regions_list = bracketed_regions.copy()
@@ -692,12 +698,15 @@ class solver:
         else:
           anagram_string_list = build_strings(new_regions_list,expanded_string + x,anagram_string_list,new_anagram_string)
       return anagram_string_list
-    def convert_neg_to_positive(region_list):
-      return ["".join(sorted(set(string.ascii_lowercase).difference(x))) for x in region_list]
+    def list_convert_neg_to_positive(region_list):
+      return [self.convert_neg_to_positive(x) for x in region_list]
+
+    #def convert_neg_to_positive(region_list):
+    #  return ["".join(sorted(set(string.ascii_lowercase).difference(x))) for x in region_list]
     
     #bracketed_neg_regions = self.get_all_par(anagram_string,self.control_chars["open_neg_bracket"],self.control_chars["close_neg_bracket"])
     bracketed_regions = self.get_all_par(anagram_string,self.control_chars["open_bracket"],self.control_chars["close_bracket"]) + \
-        convert_neg_to_positive(self.get_all_par(anagram_string,self.control_chars["open_neg_bracket"],self.control_chars["close_neg_bracket"]))
+        list_convert_neg_to_positive(self.get_all_par(anagram_string,self.control_chars["open_neg_bracket"],self.control_chars["close_neg_bracket"]))
     new_anagram_string = re.sub(self.par_regex(self.control_chars["open_bracket"],self.control_chars["close_bracket"]),"",anagram_string)
     new_anagram_string = re.sub(self.par_regex(self.control_chars["open_neg_bracket"],self.control_chars["close_neg_bracket"]),"",new_anagram_string)
     anagram_string_list = build_strings(bracketed_regions,"",anagram_string_list,new_anagram_string)
@@ -866,16 +875,63 @@ class solver:
         d = d | d2
     return list(d[y][0] + "(" + d[y][2] + ")" for y in d.keys()) 
 
+
+  def string_to_list(self,s):
+    pos_rep_char = self.control_chars["open_bracket"]
+    neg_rep_char = self.control_chars["open_neg_bracket"]
+    i_pos = 0
+    i_neg = 0
+    l = []
+    pos_bracketed_regions = self.get_all_par(s,self.control_chars["open_bracket"],self.control_chars["close_bracket"])
+    neg_bracketed_regions = self.get_all_par(s,self.control_chars["open_neg_bracket"],self.control_chars["close_neg_bracket"])
+    t = list(self.replace_bracketed_regions(s,pos_rep_char,neg_rep_char))
+    for x in t:
+      if x == pos_rep_char:
+        a = pos_bracketed_regions[i_pos]
+        i_pos += 1
+      elif x == neg_rep_char:
+        a = self.convert_neg_to_positive(neg_bracketed_regions[i_neg])
+        i_neg += 1
+      else:
+        a = x
+      l.append(a)
+    return l    
+
+  def all_perms_ordered(self,s):
+    full_list = []
+    current_string = ""
+    for x in self.string_to_list(s):
+      if len(x) == 1:
+        current_string = current_string + x
+        #print(current_string)
+      else:
+        if len(full_list) == 0:
+          full_list = [current_string]
+          current_string = ""
+        original_full_list = full_list.copy()
+        full_list = []
+        for c in x:
+          full_list = full_list + [l + current_string + c for l in original_full_list]
+          #print(full_list)
+        current_string = ""
+    if current_string != "":
+      if len(full_list) == 0:
+        full_list = [current_string]
+      else:
+        full_list = [l + current_string for l in full_list]
+      
+    return full_list
+
+
   def find_included_words(self,char_string,length):
     if self.exist_bracketed_regions(char_string):
-      string_list = self.expand_character_choice(char_string,"",set())
+      string_list = self.all_perms_ordered(char_string)
     else:
-      string_list = list(char_string)
+      string_list = [char_string]
     pos_list = list(itertools.combinations(range(self.real_length(char_string)),length))
     d = {}
     for s in string_list:
       for l in pos_list:
-        print(s,l)
         d = d | self.filter_dict("".join((s[c] for c in l)),self.master_dict[length])
     return d
 
