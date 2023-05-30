@@ -765,14 +765,15 @@ class solver:
  
   def get_all_misprint_regex(self,result,num_to_replace,before,after,char_string):
     for x in range(len(after)):
-      if after[x] not in "?*":
-        before_new = before + after[:x].copy()
-        after = char_string[-len(after):].copy()
-        after[x] = "?"
-        if num_to_replace == 1:
+      before_new = before + after[:x].copy()
+      after = char_string[-len(after):].copy()
+      original_after_x = after[x]
+      after[x] = "?"
+      if num_to_replace == 1:
+        if (original_after_x not in "?*"):
           result.append(before.copy() + after.copy())
-        else:
-          result = self.get_all_misprint_regex(result,num_to_replace - 1,before_new,after[x:].copy(),char_string)
+      else:
+        result = self.get_all_misprint_regex(result,num_to_replace - 1,before_new,after[x:].copy(),char_string)
     return result
 
   def get_misprints(self,char_string,misprint_number,d):
